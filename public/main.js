@@ -2,13 +2,16 @@
 
 // Wrap everything in an anonymous function to avoid polluting the global namespace
 (function () {
+
+  let visibilityObject = {};
+  let extensionName = ["Secure-FaceID"];
+
   $(document).ready(function () {
     tableau.extensions.initializeAsync().then(function () {
 
-      // 1. first get the dashboard.
-      const dashboard = tableau.extensions.dashboardContent.dashboard;
 
       // 2. Hide all the worksheets from the dashboard
+      hideAllWorksheets();
 
       // 3. Wait until user enters their face input
 
@@ -20,6 +23,29 @@
       console.log('Error while Initializing: ' + err.toString());
     });
   });
+
+  function hideAllWorksheets() {
+    tableau.extensions.dashboardContent.dashboard.objects.forEach(function(object){
+      if(!extensionName.includes(object.name)){
+        visibilityObject[object.id] = tableau.ZoneVisibilityType.Hide;
+      }
+    });
+
+    tableau.extensions.dashboardContent.dashboard.setZoneVisibilityAsync(visibilityObject).then(() => {
+      console.log("All hidden");
+    });
+  }
+
+  function showAllWorksheets() {
+    let showVisibilityObject = {};
+    Object.keys(visibilityObject).forEach(function(key) {
+      showVisibilityObject[key] = tableau.ZoneVisibilityType.Show;
+  });
+
+    tableau.extensions.dashboardContent.dashboard.setZoneVisibilityAsync(showVisibilityObject).then(() => {
+      console.log("All shown");
+    });
+  }
 
   function showAuthorizeButton () {
     // Clear the table first.
@@ -42,6 +68,9 @@
         const dashboard = tableau.extensions.dashboardContent.dashboard;
         $('#testVal').text(document.getElementById('cam_input').value);
         $('#testVal2').text(dashboard.name);
+
+        // Successfully authorized, show all sheets
+        showAllWorksheets();
     }
 
 })();

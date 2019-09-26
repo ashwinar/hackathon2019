@@ -16,7 +16,7 @@
   </dashboard-extension>
   <resources>
     <resource id="name">
-      <text locale="en_US">Secure by FaceID</text>
+      <text locale="en_US">Secure-FaceID</text>
     </resource>
   </resources>
 </manifest>
