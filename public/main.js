@@ -41,6 +41,7 @@
         // On successful authorize, show all worksheets in the dashboard
         const dashboard = tableau.extensions.dashboardContent.dashboard;
         $('#testVal').text(document.getElementById('cam_input').value);
+        $('#testVal2').text(dashboard.name);
     }
 
 })();
