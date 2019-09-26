@@ -79,7 +79,7 @@
         "image": base64Str,
         "gallery_name": "TestGallery"
       };
-      var url = "http://api.kairos.com/recognize";
+      var url = "https://api.kairos.com/recognize";
       // make request 
       $.ajax(url, {
         headers: headers,
