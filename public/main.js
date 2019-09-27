@@ -60,6 +60,9 @@
 
   // Call kairos API 
   function authorizeWithKairos() {
+    // handle cases where you were already authorized
+    hideAllWorksheets();
+
     if (document.getElementById('cam_input').value.length <= 0) {
       console.error("Please provide a path...");
       return;
@@ -77,7 +80,7 @@
       };
       var payload = {
         "image": base64Str,
-        "gallery_name": "TestGallery"
+        "gallery_name": "Hackathon2019"
       };
       var url = "https://api.kairos.com/recognize";
       // make request 
