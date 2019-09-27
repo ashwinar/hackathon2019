@@ -3,8 +3,11 @@
 // Wrap everything in an anonymous function to avoid polluting the global namespace
 (function () {
 
-  let visibilityObject = {};
   let extensionName = ["Secure-FaceID"];
+  let authorizationMap = {
+    "Ashwin": "Ashwin's Sheet",
+    "Johnny": "Johnny's Sheet"
+  };
 
   $(document).ready(function () {
     tableau.extensions.initializeAsync().then(function () {
@@ -21,6 +24,7 @@
   });
 
   function hideAllWorksheets() {
+    let visibilityObject = {};
     tableau.extensions.dashboardContent.dashboard.objects.forEach(function (object) {
       if (!extensionName.includes(object.name)) {
         visibilityObject[object.id] = tableau.ZoneVisibilityType.Hide;
@@ -32,14 +36,16 @@
     });
   }
 
-  function showAllWorksheets() {
+  function showWorksheetsForSubject(subjectId) {
     let showVisibilityObject = {};
-    Object.keys(visibilityObject).forEach(function (key) {
-      showVisibilityObject[key] = tableau.ZoneVisibilityType.Show;
+    tableau.extensions.dashboardContent.dashboard.objects.forEach(function (object) {
+      if (authorizationMap[subjectId] == object.name) {
+        showVisibilityObject[object.id] = tableau.ZoneVisibilityType.Show;
+      }
     });
 
     tableau.extensions.dashboardContent.dashboard.setZoneVisibilityAsync(showVisibilityObject).then(() => {
-      console.log("All shown");
+      console.log("Shown for visibility object: " + JSON.stringify(showVisibilityObject));
     });
   }
 
@@ -54,6 +60,7 @@
     authButton.innerHTML = ('Authorize');
     authButton.type = 'button';
     authButton.className = 'btn btn-primary';
+    authButton.id = 'auth_btn';
     authButton.addEventListener('click', function () { authorizeWithKairos(); });
     authCell.appendChild(authButton);
   }
@@ -63,14 +70,18 @@
     // handle cases where you were already authorized
     hideAllWorksheets();
 
+    // clear all existing messages
+    clearAllMessages();
+
     if (document.getElementById('cam_input').value.length <= 0) {
-      console.error("Please provide a path...");
+      let errMsg = 'Please provide a path...';
+      $('#errorMsg').text(errMsg);
+      console.error(errMsg);
       return;
     }
 
+    $('#auth_btn').prop('disabled', true);
     var file = document.querySelector('#cam_input').files[0];
-    $('#testVal').text(file);
-
     getBase64(file).then((base64Str) => {
       // put your keys in the header
       var headers = {
@@ -90,12 +101,13 @@
         data: JSON.stringify(payload),
         dataType: "text"
       }).done(function (response) {
-        console.log(response);
+        // console.log(response);
         let resp = JSON.parse(response);
 
         // check for any error, if any display it
         if (resp.hasOwnProperty("Errors") && resp.Errors.length > 0) {
           $('#errorMsg').text(resp.Errors[0].Message);
+          $('#auth_btn').prop('disabled', false);
           return;
         }
 
@@ -105,13 +117,14 @@
         if (images.hasOwnProperty("candidates") && images.candidates.length > 0) {  // we've found a match
           let subjectId = images.candidates[0].subject_id;
           entryMsg = `Welcome ${subjectId}!`;
-          // Successfully authorized, show all worksheets in the dashboard
-          showAllWorksheets();
+          // Successfully authorized, show the respective worksheet in the dashboard
+          showWorksheetsForSubject(subjectId);
         }
         else {
           entryMsg = 'Sorry, snoopy snooperson!';
         }
         $('#entryMsg').text(entryMsg);
+        $('#auth_btn').prop('disabled', false);
       });
     });
 
@@ -130,6 +143,11 @@
       };
       reader.onerror = error => reject(error);
     });
+  }
+
+  function clearAllMessages() {
+    $('#entryMsg').text('');
+    $('#errorMsg').text('');
   }
 
 })();
