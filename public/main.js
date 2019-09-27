@@ -3,6 +3,7 @@
 // Wrap everything in an anonymous function to avoid polluting the global namespace
 (function () {
 
+  var popupUrl = './configure.html';
   let extensionName = ["Secure-FaceID"];
   let authorizationMap = {
     "Ashwin": "Ashwin's Sheet",
@@ -10,11 +11,15 @@
   };
 
   $(document).ready(function () {
-    tableau.extensions.initializeAsync().then(function () {
-      // 1. Hide all the worksheets from the dashboard
+    tableau.extensions.initializeAsync({'configure': configure, 'configure': configure}).then(function () {
+      tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (settingsEvent) => {
+        console.log("settings have been updated: " + JSON.stringify(settingsEvent.newSettings));
+      });
+      
+      // Hide all the worksheets from the dashboard
       hideAllWorksheets();
 
-      // 4. Show Authorize Button
+      // Show Authorize Button
       showAuthorizeButton();
 
     }, function (err) {
@@ -23,29 +28,19 @@
     });
   });
 
-  function hideAllWorksheets() {
-    let visibilityObject = {};
-    tableau.extensions.dashboardContent.dashboard.objects.forEach(function (object) {
-      if (!extensionName.includes(object.name)) {
-        visibilityObject[object.id] = tableau.ZoneVisibilityType.Hide;
+  function configure() {
+    tableau.extensions.ui.displayDialogAsync(popupUrl, 'openPayload', { height: 500, width: 500 }).then((payload) => {
+      console.log("Dialog closed with payload: " );
+      console.log(payload);
+    }).catch((error) => {
+      // This will be hit if the user manually closes the dialog
+      switch(error.errorCode) {
+        case tableau.ErrorCodes.DialogClosedByUser:
+          console.log("Dialog was closed by user");
+          break;
+        default:
+          console.error(error.message);
       }
-    });
-
-    tableau.extensions.dashboardContent.dashboard.setZoneVisibilityAsync(visibilityObject).then(() => {
-      console.log("All hidden");
-    });
-  }
-
-  function showWorksheetsForSubject(subjectId) {
-    let showVisibilityObject = {};
-    tableau.extensions.dashboardContent.dashboard.objects.forEach(function (object) {
-      if (authorizationMap[subjectId] == object.name) {
-        showVisibilityObject[object.id] = tableau.ZoneVisibilityType.Show;
-      }
-    });
-
-    tableau.extensions.dashboardContent.dashboard.setZoneVisibilityAsync(showVisibilityObject).then(() => {
-      console.log("Shown for visibility object: " + JSON.stringify(showVisibilityObject));
     });
   }
 
@@ -128,6 +123,37 @@
       });
     });
 
+  }
+
+  function hideAllWorksheets() {
+    if (tableau.extensions.environment.mode == tableau.ExtensionMode.Authoring) {
+      return; // make it easy to select layouts during authoring
+    }
+
+    let visibilityObject = {};
+    tableau.extensions.dashboardContent.dashboard.objects.forEach(function (object) {
+      if (!extensionName.includes(object.name)) {
+        visibilityObject[object.id] = tableau.ZoneVisibilityType.Hide;
+      }
+    });
+
+    tableau.extensions.dashboardContent.dashboard.setZoneVisibilityAsync(visibilityObject).then(() => {
+      console.log("All hidden");
+    });
+  }
+
+  function showWorksheetsForSubject(subjectId) {
+    let showVisibilityObject = {};
+    var settings = tableau.extensions.settings.getAll();
+    tableau.extensions.dashboardContent.dashboard.objects.forEach(function (object) {
+      if (settings[subjectId] == object.name) {
+        showVisibilityObject[object.id] = tableau.ZoneVisibilityType.Show;
+      }
+    });
+
+    tableau.extensions.dashboardContent.dashboard.setZoneVisibilityAsync(showVisibilityObject).then(() => {
+      console.log("Shown for visibility object: " + JSON.stringify(showVisibilityObject));
+    });
   }
 
   function getBase64(file) {

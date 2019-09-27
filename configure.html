@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Enroll your users</title>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- Extensions Library (this will be hosted on a CDN eventually) -->
+    <script src="public/extensions-api.js"></script>
+
+    <!-- Our extension's code -->
+    <script src="./public/popup.js"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <div>
+            <h1>Enroll users</h1>
+            <div>
+                <table id="loading" class="table">
+                    <thead>
+                        <tr>
+                            <th>User Name</th>
+                            <th>Worksheet Name</th>
+                            <th>Image Upload</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input id="input1" type="text" class="form-control" placeholder="User Name"></td>
+                            <td><select id="worksheet-sel"></select></td>
+                            <td><img src="./images/upload.jpg" id="upfile" style="cursor:pointer" />
+                                <input id="photo_input" type="file" accept="image/*;capture=camera"
+                                    style="display:none" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            <button id="save" class="btn btn-primary">Save</button>
+            <button id="close" class="btn btn-primary">Close</button>
+            <button id="eraseall" class="btn btn-primary">Erase All</button>
+        </div>
+        <div class="table-responsive">
+            <h2>Currently Enrolled users</h2>
+            <table id="settingsTable" class="table table-striped hidden">
+                <thead>
+                    <tr>
+                        <th>User Name</th>
+                        <th>Worksheet Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
