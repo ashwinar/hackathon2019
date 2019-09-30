@@ -11,16 +11,31 @@ $(document).ready(() => {
         });
 
         $('#close').click(() => {
+            clearInputAndResults();
             tableau.extensions.ui.closeDialog("testPayload");
         });
 
         $('#save').click(() => {
-            var settingKey = $('#input1').val();
-            var settingValue = $('#worksheet-sel').find(":selected").val();
-            tableau.extensions.settings.set(settingKey, settingValue);
-            tableau.extensions.settings.saveAsync();
+            var userName = $('#input1').val();
+            if (userName.length <= 0) {
+                $('#popupErrorMsg').text('Please enter a username..');
+                return;
+            }
 
-            clearInputAndDisplaySettings();
+            var worksheetAuthorized = $('#worksheet-sel').find(":selected").val();
+            tableau.extensions.settings.set(userName, worksheetAuthorized);
+            tableau.extensions.settings.saveAsync();
+            let file_input = document.getElementById('photo_input');
+
+            if (typeof file_input == "undefined" || file_input.value.length <= 0) {
+                $('#popupErrorMsg').text("Please provide an input path..");
+                return;
+            }
+
+            $('#save').prop('disabled', true);
+            getReducedImgB64Data('photo_input', 'popupErrorMsg', 0.8).then((reducedImageB64data) => {
+                enrollAPI(reducedImageB64data, userName, saveCallbackFn);
+            });
         });
 
         $('#eraseall').click(() => {
@@ -36,15 +51,31 @@ $(document).ready(() => {
 
         $("#upfile").click(function () {
             $("#photo_input").trigger('click');
+            $("#photo_input").show();
         });
     });
 });
 
+var saveCallbackFn = function (response) {
+    console.log(response);
+    let resp = JSON.parse(response);
+
+    // check for any error, if any display it
+    if (resp.hasOwnProperty("Errors") && resp.Errors.length > 0) {
+        $('#popupErrorMsg').text(resp.Errors[0].Message);
+        $('#save').prop('disabled', false);
+        return;
+    }
+
+    // valid response then ..
+    clearInputAndDisplaySettings();
+    $('#save').prop('disabled', false);
+};
+
 function clearInputAndDisplaySettings() {
-    clearInput();
+    clearInputAndResults();
     var settings = tableau.extensions.settings.getAll();
     var settingKeys = Object.keys(settings);
-    $('#settingsTable > tbody tr').remove();
     const settingsTable = $('#settingsTable > tbody')[0];
     settingKeys.forEach(element => {
         let newRow = settingsTable.insertRow(settingsTable.rows.length);
@@ -60,14 +91,16 @@ function clearInputAndDisplaySettings() {
 }
 
 function clearInputAndResults() {
-    clearInput();
+    resetFields();
     $('#settingsTable > tbody tr').remove();
     $('#settingsTable').removeClass('show').addClass('hidden');
 }
 
-function clearInput() {
+function resetFields() {
     // clear input fields
     $('#input1').val('');
     $('#input2').val('');
     $('#photo_input').val('');
+    $('#popupErrorMsg').text('');
+    $("#photo_input").hide();
 }

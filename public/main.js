@@ -11,11 +11,11 @@
   };
 
   $(document).ready(function () {
-    tableau.extensions.initializeAsync({'configure': configure, 'configure': configure}).then(function () {
+    tableau.extensions.initializeAsync({ 'configure': configure, 'configure': configure }).then(function () {
       tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (settingsEvent) => {
         console.log("settings have been updated: " + JSON.stringify(settingsEvent.newSettings));
       });
-      
+
       // Hide all the worksheets from the dashboard
       hideAllWorksheets();
 
@@ -30,11 +30,11 @@
 
   function configure() {
     tableau.extensions.ui.displayDialogAsync(popupUrl, 'openPayload', { height: 500, width: 500 }).then((payload) => {
-      console.log("Dialog closed with payload: " );
+      console.log("Dialog closed with payload: ");
       console.log(payload);
     }).catch((error) => {
       // This will be hit if the user manually closes the dialog
-      switch(error.errorCode) {
+      switch (error.errorCode) {
         case tableau.ErrorCodes.DialogClosedByUser:
           console.log("Dialog was closed by user");
           break;
@@ -56,74 +56,56 @@
     authButton.type = 'button';
     authButton.className = 'btn btn-primary';
     authButton.id = 'auth_btn';
-    authButton.addEventListener('click', function () { authorizeWithKairos(); });
+    authButton.addEventListener('click', function () { authButtonHandler(); });
     authCell.appendChild(authButton);
   }
 
-  // Call kairos API 
-  function authorizeWithKairos() {
+  var respCallbackFn = function (response) {
+    // console.log(response);
+    let resp = JSON.parse(response);
+
+    // check for any error, if any display it
+    if (resp.hasOwnProperty("Errors") && resp.Errors.length > 0) {
+      $('#errorMsg').text(resp.Errors[0].Message);
+      $('#auth_btn').prop('disabled', false);
+      return;
+    }
+
+    // valid response then .. 
+    let entryMsg = '';
+    let images = resp.images[0];
+    if (images.hasOwnProperty("candidates") && images.candidates.length > 0) {  // we've found a match
+      let subjectId = images.candidates[0].subject_id;
+      entryMsg = `Welcome ${subjectId}!`;
+      // Successfully authorized, show the respective worksheet in the dashboard
+      showWorksheetsForSubject(subjectId);
+    }
+    else {
+      entryMsg = 'Sorry, snoopy snooperson!';
+    }
+    $('#entryMsg').text(entryMsg);
+    $('#auth_btn').prop('disabled', false);
+  };
+
+  function authButtonHandler() {
     // handle cases where you were already authorized
     hideAllWorksheets();
 
     // clear all existing messages
     clearAllMessages();
 
-    if (document.getElementById('cam_input').value.length <= 0) {
-      let errMsg = 'Please provide a path...';
-      $('#errorMsg').text(errMsg);
-      console.error(errMsg);
+    let file_input = document.getElementById('cam_input');
+    if (typeof file_input == "undefined" || file_input.value.length <= 0) {
+      $('#errorMsg').text("Please provide an input path..");
       return;
     }
 
     $('#auth_btn').prop('disabled', true);
-    var file = document.querySelector('#cam_input').files[0];
-    getBase64(file).then((base64Str) => {
-      // put your keys in the header
-      var headers = {
-        "Content-type": "application/json",
-        "app_id": "e013ad8d",
-        "app_key": "da171293bacd6514367f9d9371fed857"
-      };
-      var payload = {
-        "image": base64Str,
-        "gallery_name": "Hackathon2019"
-      };
-      var url = "https://api.kairos.com/recognize";
-      // make request 
-      $.ajax(url, {
-        headers: headers,
-        type: "POST",
-        data: JSON.stringify(payload),
-        dataType: "text"
-      }).done(function (response) {
-        // console.log(response);
-        let resp = JSON.parse(response);
-
-        // check for any error, if any display it
-        if (resp.hasOwnProperty("Errors") && resp.Errors.length > 0) {
-          $('#errorMsg').text(resp.Errors[0].Message);
-          $('#auth_btn').prop('disabled', false);
-          return;
-        }
-
-        // valid response then .. 
-        let entryMsg = '';
-        let images = resp.images[0];
-        if (images.hasOwnProperty("candidates") && images.candidates.length > 0) {  // we've found a match
-          let subjectId = images.candidates[0].subject_id;
-          entryMsg = `Welcome ${subjectId}!`;
-          // Successfully authorized, show the respective worksheet in the dashboard
-          showWorksheetsForSubject(subjectId);
-        }
-        else {
-          entryMsg = 'Sorry, snoopy snooperson!';
-        }
-        $('#entryMsg').text(entryMsg);
-        $('#auth_btn').prop('disabled', false);
-      });
+    getReducedImgB64Data('cam_input', 'errorMsg', 0.2).then((reducedImageB64data) => {
+      recognizeAPI(reducedImageB64data, respCallbackFn);
     });
-
   }
+
 
   function hideAllWorksheets() {
     if (tableau.extensions.environment.mode == tableau.ExtensionMode.Authoring) {
@@ -153,21 +135,6 @@
 
     tableau.extensions.dashboardContent.dashboard.setZoneVisibilityAsync(showVisibilityObject).then(() => {
       console.log("Shown for visibility object: " + JSON.stringify(showVisibilityObject));
-    });
-  }
-
-  function getBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        let encoded = reader.result.toString().replace(/^data:(.*,)?/, '');
-        if ((encoded.length % 4) > 0) {
-          encoded += '='.repeat(4 - (encoded.length % 4));
-        }
-        resolve(encoded);
-      };
-      reader.onerror = error => reject(error);
     });
   }
 

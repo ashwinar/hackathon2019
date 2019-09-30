@@ -15,6 +15,8 @@
     <script src="public/extensions-api.js"></script>
 
     <!-- Our extension's code -->
+    <script src="./public/preprocess.js"></script>
+    <script src="./public/utils.js"></script>
     <script src="./public/popup.js"></script>
 
 </head>
@@ -37,14 +39,17 @@
                             <td><input id="input1" type="text" class="form-control" placeholder="User Name"></td>
                             <td><select id="worksheet-sel"></select></td>
                             <td><img src="./images/upload.jpg" id="upfile" style="cursor:pointer" />
-                                <input id="photo_input" type="file" accept="image/*;capture=camera"
-                                    style="display:none" /></td>
+                                <input id="photo_input" type="file" accept="image/*;capture=camera"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><p><b><span id="popupErrorMsg" style="color:red"></span></b></p></td>
                         </tr>
                     </tbody>
                 </table>
 
             </div>
-            <button id="save" class="btn btn-primary">Save</button>
+            <button id="save" class="btn btn-primary">Add</button>
             <button id="close" class="btn btn-primary">Close</button>
             <button id="eraseall" class="btn btn-primary">Erase All</button>
         </div>
