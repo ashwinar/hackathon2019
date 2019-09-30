@@ -33,8 +33,8 @@ $(document).ready(() => {
             }
 
             $('#save').prop('disabled', true);
-            getReducedImgB64Data('photo_input', 'popupErrorMsg').then((reducedImageB64data) => {
-                enrollAPI(reducedImageB64data, userName, saveCallbackFn);
+            getBase64Data(file_input).then((base64Data) => {
+                enrollAPI(base64Data, userName, saveCallbackFn);
             });
         });
 
