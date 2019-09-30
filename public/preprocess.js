@@ -69,26 +69,65 @@ function resizeMe(img, imageQuality) {
     var height = img.height;
 
     // calculate the width and height, constraining the proportions
-    // if (width > height) {
-    //     if (width > MAX_WIDTH) {
-    //         //height *= max_width / width;
-    //         height = Math.round(height *= MAX_WIDTH / width);
-    //         width = MAX_WIDTH;
-    //     }
-    // } else {
-    //     if (height > MAX_HEIGHT) {
-    //         //width *= max_height / height;
-    //         width = Math.round(width *= MAX_HEIGHT / height);
-    //         height = MAX_HEIGHT;
-    //     }
-    // }
+    if (width > height) {
+        if (width > MAX_WIDTH) {
+            //height *= max_width / width;
+            height = Math.round(height *= MAX_WIDTH / width);
+            width = MAX_WIDTH;
+        }
+    } else {
+        if (height > MAX_HEIGHT) {
+            //width *= max_height / height;
+            width = Math.round(width *= MAX_HEIGHT / height);
+            height = MAX_HEIGHT;
+        }
+    }
 
     console.log("New scaled width/height: " + width + "/" + height);
     // resize the canvas and draw the image data into it
     canvas.width = width;
     canvas.height = height;
     var ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, width, height);
+    drawImageIOSFix(ctx, img, 0, 0, img.width, img.height, 0, 0, width, height);
 
     return canvas.toDataURL("image/jpeg", imageQuality); // get the data from canvas as 70% JPG (can be also PNG, etc.)
+}
+
+function detectVerticalSquash(img) {
+    var iw = img.naturalWidth, ih = img.naturalHeight;
+    var canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = ih;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    var data = ctx.getImageData(0, 0, 1, ih).data;
+    // search image edge pixel position in case it is squashed vertically.
+    var sy = 0;
+    var ey = ih;
+    var py = ih;
+    while (py > sy) {
+        var alpha = data[(py - 1) * 4 + 3];
+        if (alpha === 0) {
+            ey = py;
+        } else {
+            sy = py;
+        }
+        py = (ey + sy) >> 1;
+    }
+    var ratio = (py / ih);
+    return (ratio === 0) ? 1 : ratio;
+}
+
+/**
+ * A replacement for context.drawImage
+ * (args are for source and destination).
+ */
+function drawImageIOSFix(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+    var vertSquashRatio = detectVerticalSquash(img);
+    // Works only if whole image is displayed:
+    // ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh / vertSquashRatio);
+    // The following works correct also when only a part of the image is displayed:
+    ctx.drawImage(img, sx * vertSquashRatio, sy * vertSquashRatio,
+        sw * vertSquashRatio, sh * vertSquashRatio,
+        dx, dy, dw, dh);
 }
