@@ -3,6 +3,7 @@ var MAX_WIDTH = 620;
 var MAX_HEIGHT = 620;
 
 // this is the export function
+// If img quality not specified, high res image uploads
 var getReducedImgB64Data = function (fileInputId, errorMsgElementId, imageQuality) {
     let errorMsgElement = document.getElementById(errorMsgElementId);
     let fileinput = document.getElementById(fileInputId);
