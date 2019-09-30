@@ -69,19 +69,19 @@ function resizeMe(img, imageQuality) {
     var height = img.height;
 
     // calculate the width and height, constraining the proportions
-    // if (width > height) {
-    //     if (width > MAX_WIDTH) {
-    //         //height *= max_width / width;
-    //         height = Math.round(height *= MAX_WIDTH / width);
-    //         width = MAX_WIDTH;
-    //     }
-    // } else {
-    //     if (height > MAX_HEIGHT) {
-    //         //width *= max_height / height;
-    //         width = Math.round(width *= MAX_HEIGHT / height);
-    //         height = MAX_HEIGHT;
-    //     }
-    // }
+    if (width > height) {
+        if (width > MAX_WIDTH) {
+            //height *= max_width / width;
+            height = Math.round(height *= MAX_WIDTH / width);
+            width = MAX_WIDTH;
+        }
+    } else {
+        if (height > MAX_HEIGHT) {
+            //width *= max_height / height;
+            width = Math.round(width *= MAX_HEIGHT / height);
+            height = MAX_HEIGHT;
+        }
+    }
 
     console.log("New scaled width/height: " + width + "/" + height);
     // resize the canvas and draw the image data into it

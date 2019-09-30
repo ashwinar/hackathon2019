@@ -101,9 +101,31 @@
     }
 
     $('#auth_btn').prop('disabled', true);
-    getReducedImgB64Data('cam_input', 'errorMsg', 1).then((reducedImageB64data) => {
-      recognizeAPI(reducedImageB64data, respCallbackFn);
+
+    var options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true
+    }
+
+    let imageFile = document.getElementById('cam_input').files[0];
+    imageCompression(imageFile, options)
+    .then(function (compressedFile) {
+      console.log('compressedFile instanceof Blob', compressedFile instanceof Blob); // true
+      console.log(`compressedFile size ${compressedFile.size / 1024 / 1024} MB`); // smaller than maxSizeMB
+ 
+      imageCompression.getDataUrlFromFile(compressedFile).then((base64Data) => {
+        let encoded = base64Data.replace(/^data:(.*,)?/, '');
+        recognizeAPI(encoded, respCallbackFn);
+      });
+    })
+    .catch(function (error) {
+      console.log(error.message);
     });
+
+    // getReducedImgB64Data('cam_input', 'errorMsg', 1).then((reducedImageB64data) => {
+    //   recognizeAPI(reducedImageB64data, respCallbackFn);
+    // });
   }
 
 
