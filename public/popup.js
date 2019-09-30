@@ -33,7 +33,7 @@ $(document).ready(() => {
             }
 
             $('#save').prop('disabled', true);
-            getBase64Data(file_input).then((base64Data) => {
+            getReducedBase64Data(file_input).then((base64Data) => {
                 enrollAPI(base64Data, userName, saveCallbackFn);
             });
         });
