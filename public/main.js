@@ -101,7 +101,7 @@
     }
 
     $('#auth_btn').prop('disabled', true);
-    getReducedImgB64Data('cam_input', 'errorMsg', 0.5).then((reducedImageB64data) => {
+    getReducedImgB64Data('cam_input', 'errorMsg', 1).then((reducedImageB64data) => {
       recognizeAPI(reducedImageB64data, respCallbackFn);
     });
   }
