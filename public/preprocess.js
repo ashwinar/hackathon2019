@@ -1,6 +1,6 @@
 // Constants
-var MAX_WIDTH = 620;
-var MAX_HEIGHT = 620;
+var MAX_WIDTH = 1280;
+var MAX_HEIGHT = 1280;
 
 // this is the export function
 // If img quality not specified, high res image uploads
@@ -83,6 +83,7 @@ function resizeMe(img, imageQuality) {
         }
     }
 
+    console.log("New scaled width/height: " + width + "/" + height);
     // resize the canvas and draw the image data into it
     canvas.width = width;
     canvas.height = height;
